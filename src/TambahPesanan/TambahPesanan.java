@@ -203,14 +203,11 @@ public class TambahPesanan extends JFrame {
             return;
         }
 
-        String totalStr = currencyFormatter.format(currentOrder.calculateTotal());
-        showInfo("Total belanja: " + totalStr + "\n\nTerima kasih!");
-
-        currentOrder.clear();
-        updateCartDisplay();
+        // Arahkan ke halaman ProsesCheckout dan berikan referensi ke TambahPesanan
+        ProsesCheckout.showCheckoutPage(currentOrder, this);
     }
 
-    private void updateCartDisplay() {
+    public void updateCartDisplay() {
         cartTableModel.setRowCount(0);
         for (OrderItem item : currentOrder.getItems()) {
             cartTableModel.addRow(new Object[]{
@@ -229,10 +226,6 @@ public class TambahPesanan extends JFrame {
 
     private void showError(String msg) {
         JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-
-    private void showInfo(String msg) {
-        JOptionPane.showMessageDialog(this, msg, "Sukses", JOptionPane.INFORMATION_MESSAGE);
     }
 
     public static void main(String[] args) {
@@ -282,7 +275,7 @@ public class TambahPesanan extends JFrame {
 
     static record Product(String code, String name, double price) {}
 
-    static class OrderItem {
+    public static class OrderItem { // Dibuat public static agar bisa diakses ProsesCheckout
         private final Product product;
         private int quantity;
 
@@ -302,7 +295,7 @@ public class TambahPesanan extends JFrame {
         public int getQuantity() { return quantity; }
     }
 
-    static class Order {
+    public static class Order { // Dibuat public static agar bisa diakses ProsesCheckout
         private final List<OrderItem> items = new ArrayList<>();
 
         public void addProduct(Product product) {
