@@ -12,6 +12,12 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import org.apache.xmlrpc.client.XmlRpcClient;
+import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class TambahPesanan extends JFrame {
 
@@ -29,14 +35,8 @@ public class TambahPesanan extends JFrame {
     }
 
     private void initData() {
-        menu.add(new Product("K01", "Espresso", 18000));
-        menu.add(new Product("K02", "Americano", 20000));
-        menu.add(new Product("K03", "Cafe Latte", 25000));
-        menu.add(new Product("K04", "Cappuccino", 28000));
-        menu.add(new Product("M01", "Croissant", 22000));
-        menu.add(new Product("M02", "Donat Coklat", 15000));
-        menu.add(new Product("M03", "Cheese Cake", 35000));
-    }
+    loadMenuFromOdoo();
+}
 
     private void initUI() {
         setTitle("Sistem Kasir Coffee Shop");
@@ -245,6 +245,57 @@ public class TambahPesanan extends JFrame {
 
         SwingUtilities.invokeLater(() -> new TambahPesanan().setVisible(true));
     }
+
+    private void loadMenuFromOdoo() {
+    try {
+        XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+        config.setServerURL(new URL("http://localhost:8069/xmlrpc/2/object"));
+
+        XmlRpcClient models = new XmlRpcClient();
+        models.setConfig(config);
+
+        // DOMAIN BENAR
+        List<Object> domain = new ArrayList<>();
+        domain.add(List.of("available_in_pos", "=", true));
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("fields", List.of("id", "name", "list_price"));
+
+        Object result = models.execute(
+                "execute_kw",
+                List.of(
+                        "db_coffe_shop",
+                        User.uid,
+                        User.PASSWORD,   // 🔥 BUKAN STRING LAGI
+                        "product.product",
+                        "search_read",
+                        List.of(domain),
+                        params
+                )
+        );
+
+        Object[] products = (Object[]) result;
+
+        menu.clear(); // bersihkan menu lama
+
+        for (Object obj : products) {
+            Map<String, Object> prod = (Map<String, Object>) obj;
+
+            String code = String.valueOf(prod.get("id"));
+            String name = (String) prod.get("name");
+            double price = ((Number) prod.get("list_price")).doubleValue();
+
+            menu.add(new Product(code, name, price));
+        }
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this,
+                "Gagal mengambil menu dari Odoo",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        e.printStackTrace();
+    }
+}
 
     static class AppTheme {
         public static final Color COLOR_PRIMARY = new Color(52, 152, 219);
