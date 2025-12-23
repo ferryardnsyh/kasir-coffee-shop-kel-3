@@ -54,7 +54,7 @@ public class TambahPesanan extends JFrame {
     private JScrollPane createMenuPanel() {
         JPanel panel = new JPanel(new GridLayout(0, 1, 8, 8));
         panel.setBackground(AppTheme.COLOR_BACKGROUND);
-        panel.setBorder(AppTheme.createTitledBorder("Daftar Menu", Color.WHITE)); // Title color set to white
+        panel.setBorder(AppTheme.createTitledBorder("Daftar Menu"));
 
         for (Product product : menu) {
             JButton btn = createMenuButton(product);
@@ -82,7 +82,7 @@ public class TambahPesanan extends JFrame {
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(AppTheme.COLOR_BACKGROUND);
-        panel.setBorder(AppTheme.createTitledBorder("Menu yang dipesan", Color.WHITE)); // Title color set to white
+        panel.setBorder(AppTheme.createTitledBorder("Menu yang dipesan"));
         panel.add(scrollPane, BorderLayout.CENTER);
 
         return panel;
@@ -103,20 +103,15 @@ public class TambahPesanan extends JFrame {
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         buttons.setOpaque(false);
 
-        // Penambahan button edit menu with bold text and white font color
+        // Penambahan button edit menu
         JButton btnEdit = AppTheme.createFlatButton("Edit Menu", new Color(241, 196, 15), Color.BLACK);
-        btnEdit.setFont(AppTheme.FONT_BOLD);  // Make text bold
-        btnEdit.setForeground(Color.WHITE);  // Set font color to white
         btnEdit.addActionListener(e -> editSelectedItem());
 
-        // Hapus Menu button with bold text
         JButton btnDelete = AppTheme.createFlatButton("Hapus Menu", AppTheme.COLOR_DANGER, Color.WHITE);
-        btnDelete.setFont(AppTheme.FONT_BOLD);  // Make text bold
         btnDelete.addActionListener(e -> removeSelectedItem());
 
-        // Bayar / Checkout button with bold text
         JButton btnCheckout = AppTheme.createFlatButton("Bayar / Checkout", AppTheme.COLOR_SUCCESS, Color.WHITE);
-        btnCheckout.setFont(AppTheme.FONT_BOLD);  // Make text bold
+        btnCheckout.setFont(AppTheme.FONT_BOLD);
         btnCheckout.setPreferredSize(new Dimension(180, 45));
         btnCheckout.addActionListener(e -> processCheckout());
 
@@ -250,7 +245,7 @@ public class TambahPesanan extends JFrame {
         public static final Color COLOR_PRIMARY = new Color(52, 152, 219);
         public static final Color COLOR_SUCCESS = new Color(46, 204, 113);
         public static final Color COLOR_DANGER = new Color(231, 76, 60);
-        public static final Color COLOR_BACKGROUND = new Color(123, 77, 26); // #7B4D1A
+        public static final Color COLOR_BACKGROUND = new Color(236, 240, 241);
 
         public static final Font FONT_REGULAR = new Font("Segoe UI", Font.PLAIN, 14);
         public static final Font FONT_BOLD = new Font("Segoe UI", Font.BOLD, 14);
@@ -270,9 +265,9 @@ public class TambahPesanan extends JFrame {
             return btn;
         }
 
-        public static CompoundBorder createTitledBorder(String title, Color titleColor) {
+        public static CompoundBorder createTitledBorder(String title) {
             return new CompoundBorder(
-                    BorderFactory.createTitledBorder(null, title, 0, 0, FONT_BOLD, titleColor),
+                    BorderFactory.createTitledBorder(null, title, 0, 0, FONT_BOLD, Color.DARK_GRAY),
                     new EmptyBorder(10, 10, 10, 10)
             );
         }

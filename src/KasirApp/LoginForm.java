@@ -135,7 +135,7 @@ public class LoginForm extends javax.swing.JFrame {
         return; 
     }
 
-    // Proses Login
+    // Proses login
     User user = new User();
     
     if (user.login(username, password)) {

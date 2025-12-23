@@ -105,7 +105,7 @@ public class ProsesCheckout extends JFrame {
         JPanel mainPanel = new JPanel();
         // Menggunakan GridBagLayout untuk responsivitas yang superior
         mainPanel.setLayout(new GridBagLayout()); 
-        mainPanel.setBackground(new Color(123, 77, 26)); // Background set to #7B4D1A
+        mainPanel.setBackground(new Color(250, 250, 250));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL; // Default untuk sebagian besar komponen
@@ -120,7 +120,6 @@ public class ProsesCheckout extends JFrame {
         // Metode Pembayaran (Baris 1)
         JLabel methodLabel = new JLabel("Pilih Metode Pembayaran:");
         methodLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        methodLabel.setForeground(Color.WHITE);  // Set text color to white
         gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1; gbc.weightx = 0.0; gbc.anchor = GridBagConstraints.WEST;
         mainPanel.add(methodLabel, gbc);
 
@@ -134,7 +133,6 @@ public class ProsesCheckout extends JFrame {
         cashPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         cashPanel.setOpaque(false);
         JLabel amountLabel = new JLabel("Jumlah Uang Diberikan (Rp): ");
-        amountLabel.setForeground(Color.WHITE); // Set text color to white
         amountPaidField = new JTextField(10);
         cashPanel.add(amountLabel);
         cashPanel.add(amountPaidField);
@@ -245,7 +243,7 @@ public class ProsesCheckout extends JFrame {
                 // Lakukan pembersihan dan tutup jendela
                 currentOrder.clear();
                 mainFrame.updateCartDisplay(); 
-                dispose();
+                dispose(); 
             }
         });
     }
