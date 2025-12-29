@@ -8,6 +8,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfWriter;
+import java.io.FileOutputStream;
+import java.io.File; // Impor kelas File untuk membuka PDF
 
 public class ProsesCheckout extends JFrame {
 
@@ -22,6 +29,7 @@ public class ProsesCheckout extends JFrame {
     private JTextArea receiptArea;
     private JPanel cashPanel;
     private JButton processButton; // Dideklarasikan sebagai field
+    private JButton printPDFButton; // Tombol untuk mencetak PDF
 
     // Kelas untuk Mengelola Pembayaran
     static class Payment {
@@ -51,32 +59,39 @@ public class ProsesCheckout extends JFrame {
             return true;
         }
 
+        // printReceipt()
         public void printReceipt(JTextArea receiptArea, NumberFormat formatter, Order order) {
             receiptArea.setText(""); 
             receiptArea.append("====================================\n");
             receiptArea.append("         STRUK PEMBAYARAN          \n");
             receiptArea.append("====================================\n");
 
+            // Menambahkan Tanggal dan Waktu
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+            String currentDateTime = LocalDateTime.now().format(dtf); 
+            receiptArea.append("Tanggal & Waktu: " + currentDateTime + "\n");
+
             // Detail Item
             for(OrderItem item : order.getItems()) {
                 receiptArea.append(String.format("%-20s %3d x %s\n", 
-                    item.getProduct().name(), 
-                    item.getQuantity(), 
-                    formatter.format(item.getProduct().price())
-                ));
-            }
-            
-            receiptArea.append("------------------------------------\n");
-            receiptArea.append(String.format("%-20s %s\n", "Total Pembayaran:", formatter.format(this.totalAmount)));
-            
-            if (this.paymentMethod.equals("cash")) {
-                receiptArea.append(String.format("%-20s %s\n", "Jumlah yang Dibayar:", formatter.format(this.amountPaid)));
-                receiptArea.append(String.format("%-20s %s\n", "Kembalian:", formatter.format(this.change)));
-            } 
-            
-            receiptArea.append("Metode Pembayaran: " + this.paymentMethod.toUpperCase() + "\n");
-            receiptArea.append("====================================\n");
+                item.getProduct().name(), 
+                item.getQuantity(), 
+                formatter.format(item.getProduct().price())
+            ));
         }
+
+        receiptArea.append("------------------------------------\n");
+        receiptArea.append(String.format("%-20s %s\n", "Total Pembayaran:", formatter.format(this.totalAmount)));
+    
+        if (this.paymentMethod.equals("cash")) {
+            receiptArea.append(String.format("%-20s %s\n", "Jumlah yang Dibayar:", formatter.format(this.amountPaid)));
+            receiptArea.append(String.format("%-20s %s\n", "Kembalian:", formatter.format(this.change)));
+        } 
+    
+        receiptArea.append("Metode Pembayaran: " + this.paymentMethod.toUpperCase() + "\n");
+        receiptArea.append("====================================\n");
+        }
+
         
         public String getSuccessMessage(NumberFormat formatter) {
             if (this.paymentMethod.equals("cash")) {
@@ -151,7 +166,17 @@ public class ProsesCheckout extends JFrame {
         gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; gbc.weightx = 1.0; // Tombol mengisi horizontal
         mainPanel.add(processButton, gbc);
 
-        // Area Struk (Baris 4)
+        // Tombol Cetak PDF (Baris 4)
+        printPDFButton = new JButton("Cetak Struk PDF");
+        printPDFButton.setFont(new Font("Arial", Font.BOLD, 16));
+        printPDFButton.setBackground(new Color(52, 152, 219));
+        printPDFButton.setForeground(Color.WHITE);
+        printPDFButton.setFocusPainted(false);
+        printPDFButton.setPreferredSize(new Dimension(200, 40));
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; gbc.weightx = 1.0;
+        mainPanel.add(printPDFButton, gbc);
+
+        // Area Struk (Baris 5)
         receiptArea = new JTextArea(10, 30);
         receiptArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
         receiptArea.setEditable(false);
@@ -159,16 +184,11 @@ public class ProsesCheckout extends JFrame {
         receiptArea.setBorder(BorderFactory.createTitledBorder("Struk Transaksi"));
         
         JScrollPane scrollPane = new JScrollPane(receiptArea);
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; 
-        
-        // PENGATURAN RESPONSIVITAS UTAMA:
+        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2; 
         gbc.weightx = 1.0; // Melebar secara horizontal saat frame di-resize
         gbc.weighty = 1.0; // PENTING: Melebar secara vertikal saat frame di-resize
-        gbc.fill = GridBagConstraints.BOTH; // Mengisi ruang di kedua arah
+        gbc.fill = GridBagConstraints.BOTH;
         mainPanel.add(scrollPane, gbc);
-        
-        // Kembalikan weighty=0.0 untuk komponen selanjutnya (meskipun sudah selesai)
-        gbc.weighty = 0.0; 
 
         add(mainPanel, BorderLayout.CENTER);
 
@@ -179,16 +199,49 @@ public class ProsesCheckout extends JFrame {
             pack(); 
         });
 
-        // Action Listener Awal untuk tombol proses pembayaran (Bayar)
+        // Action Listener untuk tombol proses pembayaran (Bayar)
         processButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 handlePayment();
             }
         });
-        
+
+        // Action Listener untuk tombol Cetak PDF
+        printPDFButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                printReceiptToPDF();
+            }
+        });
+
         pack(); 
     }
+
+    private void printReceiptToPDF() {
+    String receiptText = receiptArea.getText(); // Ambil teks struk dari JTextArea
+    String filePath = "struk_pembayaran.pdf"; // Tentukan lokasi dan nama file PDF yang akan disimpan
+
+    try {
+        // Membuat file PDF
+        Document document = new Document();
+        PdfWriter.getInstance(document, new FileOutputStream(filePath));
+        document.open();
+        document.add(new Paragraph(receiptText)); // Tambahkan teks struk ke dalam PDF
+        document.close();
+
+        // Membuka file PDF menggunakan aplikasi pembaca PDF default
+        if (Desktop.isDesktopSupported()) {
+            Desktop.getDesktop().open(new File(filePath));  // Membuka file PDF setelah dicetak
+        }
+
+        // Tampilkan pesan sukses
+        JOptionPane.showMessageDialog(this, "Struk berhasil dicetak dan dibuka!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat mencetak struk.", "Error", JOptionPane.ERROR_MESSAGE);
+        e.printStackTrace();
+    }
+}
 
     private void handlePayment() {
         String paymentMethod = (String) paymentMethodComboBox.getSelectedItem();
