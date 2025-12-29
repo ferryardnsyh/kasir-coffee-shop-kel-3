@@ -3,17 +3,18 @@ package KasirApp;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import java.net.URL;
+import java.util.Collections;
 
 public class User {
 
     public static int uid = -1;
+    public static String PASSWORD;
+    public static String USERNAME;
 
-    // Konfigurasi Odoo
-    static final String URL_ODOO = "http://localhost:8069";
-    static final String DB = "db_coffe_shop";
-    public static final String PASSWORD = "admin";
+    public static final String URL_ODOO = "https://coffe-shop3.odoo.com";
+    public static final String DB = "coffe-shop3";
 
-    public boolean login(String username, String password) {
+    public boolean login(String email, String password) {
         try {
             XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
             config.setServerURL(new URL(URL_ODOO + "/xmlrpc/2/common"));
@@ -23,17 +24,28 @@ public class User {
 
             Object uidObj = client.execute(
                 "authenticate",
-                new Object[]{DB, username, password, java.util.Collections.emptyMap()}
+                new Object[]{
+                    DB,
+                    email,
+                    password,
+                    Collections.emptyMap()
+                }
             );
 
-            if (uidObj instanceof Integer) {
+            if (uidObj instanceof Integer && (int) uidObj > 0) {
                 uid = (int) uidObj;
-                return uid > 0;
+                USERNAME = email;
+                PASSWORD = password;
+                return true;
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public static boolean isLoggedIn() {
+        return uid > 0 && PASSWORD != null;
     }
 }

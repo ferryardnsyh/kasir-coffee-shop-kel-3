@@ -12,7 +12,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import java.net.URL;
 import java.util.HashMap;
@@ -248,44 +247,32 @@ public class TambahPesanan extends JFrame {
 
     private void loadMenuFromOdoo() {
     try {
-        XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
-        config.setServerURL(new URL("http://localhost:8069/xmlrpc/2/object"));
-
-        XmlRpcClient models = new XmlRpcClient();
-        models.setConfig(config);
-
-        // DOMAIN BENAR
-        List<Object> domain = new ArrayList<>();
-        domain.add(List.of("available_in_pos", "=", true));
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("fields", List.of("id", "name", "list_price"));
-
-        Object result = models.execute(
-                "execute_kw",
-                List.of(
-                        "db_coffe_shop",
-                        User.uid,
-                        User.PASSWORD,   // 🔥 BUKAN STRING LAGI
-                        "product.product",
-                        "search_read",
-                        List.of(domain),
-                        params
-                )
+        Object result = OdooService.execute(
+            "product.product",
+            "search_read",
+            List.of(List.of(
+                List.of("available_in_pos", "=", true)
+            )),
+            Map.of(
+                "fields", List.of("id", "name", "list_price"),
+                "limit", 100
+            )
         );
 
         Object[] products = (Object[]) result;
 
-        menu.clear(); // bersihkan menu lama
+        System.out.println("Produk POS dari Odoo: " + products.length);
+
+        menu.clear();
 
         for (Object obj : products) {
             Map<String, Object> prod = (Map<String, Object>) obj;
 
-            String code = String.valueOf(prod.get("id"));
+            String id = prod.get("id").toString();
             String name = (String) prod.get("name");
             double price = ((Number) prod.get("list_price")).doubleValue();
 
-            menu.add(new Product(code, name, price));
+            menu.add(new Product(id, name, price));
         }
 
     } catch (Exception e) {
@@ -296,7 +283,6 @@ public class TambahPesanan extends JFrame {
         e.printStackTrace();
     }
 }
-
     static class AppTheme {
         public static final Color COLOR_PRIMARY = new Color(52, 152, 219);
         public static final Color COLOR_SUCCESS = new Color(46, 204, 113);
